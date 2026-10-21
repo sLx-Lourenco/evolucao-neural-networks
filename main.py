@@ -1,7 +1,7 @@
 import pygame
 import state_box as sb
 import config
-
+import world as w
 
 
 
@@ -26,15 +26,15 @@ def eventos(state:sb.State):
                                state.turbo= not state.turbo
 
 
-def update(state:sb.State):
-    state.add_tick()
+def update(world:w.World):
+    world.add_tick()
 
 
-def draw(clock, state:sb.State, surface, fonte):
+def draw(clock, world: w.World, state:sb.State, surface, fonte):
     surface.fill(config.COR_DE_FUNDO)
 
     text_fps = fonte.render(f"Fps: {round(clock.get_fps())}", True, config.COR_DE_TEXT)
-    text_ticks = fonte.render(f"Ticks: {state.n_ticks}", True, config.COR_DE_TEXT)
+    text_ticks = fonte.render(f"Ticks: {world.n_ticks}", True, config.COR_DE_TEXT)
 
     text_pausa = fonte.render(f"PAUSA: {state.pausa}", True, config.COR_DE_TEXT)
     text_turbo = fonte.render(f"TURBO: {state.turbo}", True, config.COR_DE_TEXT)
@@ -57,6 +57,7 @@ def main():
     pygame.display.set_caption("Evolucao")
 
     caixa_de_estado = sb.State()
+    world= w.World(config.WORLD_WIDTH, config.WORLD_HEIGHT)
     clock = pygame.time.Clock()
     
 
@@ -70,10 +71,10 @@ def main():
 
         
         for _ in range(caixa_de_estado.get_avanco_ticks()):         
-            update(caixa_de_estado)
+            update(world)
 
 
-        draw(clock, caixa_de_estado, surface, fonte)
+        draw(clock, world, caixa_de_estado, surface, fonte)
         
 
         clock.tick(config.FPS)

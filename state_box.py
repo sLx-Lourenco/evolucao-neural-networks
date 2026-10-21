@@ -1,14 +1,10 @@
 import config
 
 class State:
-    def __init__(self, correr:bool = True, pausa:bool = False, turbo:bool = False, n_ticks:int = 0):
+    def __init__(self, correr:bool = True, pausa:bool = False, turbo:bool = False):
         self.correr = correr
         self.pausa=pausa
         self.turbo=turbo
-        self.n_ticks = n_ticks
-
-    def add_tick(self):
-        self.n_ticks += 1
 
 
     def get_avanco_ticks(self):
