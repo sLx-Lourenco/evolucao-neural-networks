@@ -1,3 +1,3 @@
 class Food:
-    def __init__(self, pos: tuple[int, int]):
+    def __init__(self, pos: tuple[float, float]):
             self.pos=pos

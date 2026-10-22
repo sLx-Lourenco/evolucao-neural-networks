@@ -3,6 +3,7 @@ import state_box as sb
 import config as config
 import world as w
 import food as food
+import math
 
 
 
@@ -56,6 +57,30 @@ def draw(clock, world: w.World, state:sb.State, surface, fonte):
               f.pos,
               config.FOOD_RADIUS)
 
+
+    for c in world.creatures:
+         #enfraquecimento do vermelho
+         fracao = max(0.0, min(1.0, c.energy / config.CREATURE_BASE_ENERGY))
+         vermelho = int(60 + fracao * (255 - 60))
+        
+         
+         pygame.draw.circle(
+                surface,
+                (vermelho, 40, 40),
+                c.pos,
+                c.size)
+
+         fim = (c.pos[0] + math.cos(c.angle) * c.size,
+                c.pos[1] + math.sin(c.angle) * c.size)
+    
+         pygame.draw.line(
+                surface, 
+                config.CREATURE_DIRECTION_COLOR, 
+                c.pos, 
+                fim, 
+                config.CREATURE_DIRECTION_LARGURA)
+
+         
     pygame.display.flip()
 
 
