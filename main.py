@@ -2,6 +2,7 @@ import pygame
 import state_box as sb
 import config
 import world as w
+import food
 
 
 
@@ -27,7 +28,7 @@ def eventos(state:sb.State):
 
 
 def update(world:w.World):
-    world.add_tick()
+    world.advance_tick()
 
 
 def draw(clock, world: w.World, state:sb.State, surface, fonte):
@@ -46,6 +47,15 @@ def draw(clock, world: w.World, state:sb.State, surface, fonte):
     surface.blit(text_ticks, (0,20))
 
     surface.blit(text_turbo, (100,20))
+
+    #FOOD
+    for f in world.foods:
+         pygame.draw.circle(
+              surface, 
+              config.FOOD_COLOR,
+              f.pos,
+              config.FOOD_RADIUS)
+
     pygame.display.flip()
 
 
@@ -57,7 +67,7 @@ def main():
     pygame.display.set_caption("Evolucao")
 
     caixa_de_estado = sb.State()
-    world= w.World(config.WORLD_WIDTH, config.WORLD_HEIGHT)
+    world= w.World(config.WORLD_SIZE)
     clock = pygame.time.Clock()
     
 
