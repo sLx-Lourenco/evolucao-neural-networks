@@ -1,4 +1,4 @@
-import config
+import config as config
 
 class State:
     def __init__(self, correr:bool = True, pausa:bool = False, turbo:bool = False):

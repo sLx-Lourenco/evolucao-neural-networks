@@ -1,6 +1,6 @@
-import food
+import food as food
 import random
-import config
+import config as config
 
 class World:
     def __init__(self, size: tuple[int, int]):

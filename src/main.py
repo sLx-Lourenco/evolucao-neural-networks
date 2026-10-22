@@ -1,8 +1,8 @@
 import pygame
 import state_box as sb
-import config
+import config as config
 import world as w
-import food
+import food as food
 
 
 

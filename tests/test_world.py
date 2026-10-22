@@ -5,8 +5,8 @@ Usa os valores do teu config.py. Assume que o World recebe o tamanho
 como um tuplo e que cada Food guarda a posição em .pos.
 """
 import random
-import config
-from world import World
+import src.config as config
+from src.world import World
 
 TAMANHO = (1000, 700)
 LARGURA, ALTURA = TAMANHO
