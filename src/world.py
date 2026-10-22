@@ -3,6 +3,7 @@ import random
 import config
 import creature
 import geometria
+import genome as gen
 
 class World:
     def __init__(self, size: tuple[float, float]):
@@ -54,12 +55,21 @@ class World:
             c_velocity = random.uniform(config.CREATURE_BASE_VELOCITY * (1- config.CREATURE_VARIATION), 
                                         config.CREATURE_BASE_VELOCITY * (1+ config.CREATURE_VARIATION))
 
+            cor:list[int] = []
+            for i in range(3):
+                cor.append(round(random.uniform(0,config.RANGE_COR_BASE[i])))
+
+
+
+            c_cor = (cor[0],cor[1],cor[2])
+
+            genoma = gen.Genoma(c_size, c_velocity, c_cor, 1)
+
 
             c = creature.Creature(
                  (random.uniform(0, self.size[0]), random.uniform(0, self.size[1])),
-                 c_size,
-                 c_velocity
-            )
+                 genoma
+                )
             self.creatures.append(c)
 
 
@@ -70,7 +80,7 @@ class World:
             vetor= geometria.delta(c.pos, f.pos, self.size)
             h = vetor[0]**2 + vetor[1]**2
 
-            if((c.size + config.FOOD_RADIUS)**2 > h):
+            if((c.genoma.size + config.FOOD_RADIUS)**2 > h):
                 c.comer()
                 self.foods.remove(f)
                 break

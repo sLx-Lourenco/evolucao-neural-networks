@@ -59,19 +59,18 @@ def draw(clock, world: w.World, state:sb.State, surface, fonte):
 
 
     for c in world.creatures:
-         #enfraquecimento do vermelho
-         fracao = max(0.0, min(1.0, c.energy / config.CREATURE_BASE_ENERGY))
-         vermelho = int(60 + fracao * (255 - 60))
         
+         text_vida = fonte.render(f"{round(c.energy)}", True, config.COR_DE_TEXT)
+         surface.blit(text_vida, (c.pos[0]-10,c.pos[1]-25))
          
          pygame.draw.circle(
                 surface,
-                (vermelho, 40, 40),
+                c.genoma.cor,
                 c.pos,
-                c.size)
+                c.genoma.size)
 
-         fim = (c.pos[0] + math.cos(c.angle) * c.size,
-                c.pos[1] + math.sin(c.angle) * c.size)
+         fim = (c.pos[0] + math.cos(c.angle) * c.genoma.size,
+                c.pos[1] + math.sin(c.angle) * c.genoma.size)
     
          pygame.draw.line(
                 surface, 

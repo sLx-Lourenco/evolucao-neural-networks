@@ -2,14 +2,16 @@ import math
 import random
 import config
 import geometria
+import genome as gen
 
 class Creature():
-    def __init__(self, pos: tuple[float, float], size:float, velocity: float, 
+    def __init__(self, pos: tuple[float, float], 
+                 genoma: gen.Genoma,
                  energy:float = config.CREATURE_BASE_ENERGY):
+        
         self.pos=pos
         self.angle = random.uniform(0, 2 * math.pi)
-        self.size = size
-        self.velocity = velocity
+        self.genoma=genoma
         self.energy = energy
 
     def virar_acaso(self):
@@ -18,8 +20,8 @@ class Creature():
 
     def andar(self, worldSize):
         #vetor direcao * velocidade
-        deslocamento: tuple[float,float]=(math.cos(self.angle) * self.velocity,
-                                       math.sin(self.angle)* self.velocity)
+        deslocamento: tuple[float,float]=(math.cos(self.angle) * self.genoma.velocity,
+                                       math.sin(self.angle)* self.genoma.velocity)
 
         temp_pos= (self.pos[0]+deslocamento[0], self.pos[1]+deslocamento[1])
 
@@ -28,7 +30,7 @@ class Creature():
     
     
     def gastar_energia(self):
-        custo = config.CREATURE_K_BASE + (config.CREATURE_K1 * self.size) + (config.CREATURE_K2 * (self.velocity**2))
+        custo = config.CREATURE_K_BASE + (config.CREATURE_K1 * self.genoma.size) + (config.CREATURE_K2 * (self.genoma.velocity**2))
         self.energy-=custo
 
 
