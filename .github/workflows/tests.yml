@@ -6,7 +6,20 @@ on:
 
 jobs:
   pytest:
+    name: ${{ matrix.ficheiro }}
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false        # se um ficheiro falhar, os outros continuam a correr
+      matrix:
+        ficheiro:
+          - test_geometria
+          - test_genome
+          - test_creature
+          - test_world
+          - test_state_box
+          - test_main
+          - test_simulacao
 
     steps:
       - name: Obter o código
@@ -26,8 +39,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Correr os testes
+      - name: Correr ${{ matrix.ficheiro }}
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-        run: python -m pytest -v
+        run: python -m pytest -v tests/${{ matrix.ficheiro }}.py
