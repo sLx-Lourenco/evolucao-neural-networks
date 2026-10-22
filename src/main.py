@@ -60,8 +60,9 @@ def draw(clock, world: w.World, state:sb.State, surface, fonte):
 
     for c in world.creatures:
         
-         text_vida = fonte.render(f"{round(c.energy)}", True, config.COR_DE_TEXT)
+         text_vida = fonte.render(f"{round(c.energy)} : {c.genoma.geracao}", True, config.COR_DE_TEXT)
          surface.blit(text_vida, (c.pos[0]-10,c.pos[1]-25))
+
          
          pygame.draw.circle(
                 surface,

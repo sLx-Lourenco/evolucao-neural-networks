@@ -18,6 +18,7 @@ class World:
 
     def advance_tick(self):
             self.n_ticks += 1
+            filhos:list[creature.Creature] = []
 
             if(random.uniform(0.0,1.0) < config.TAXA_FOOD_PER_TICK
                and len(self.foods) < config.MAX_FOOD):
@@ -31,8 +32,13 @@ class World:
 
                  self.verificar_alimentacao(c)
 
+                 if c.pode_reproduzir():
+                     filhos.append(c.gera_filho())
+                     
+
             
             self.creatures = [c for c in self.creatures if c.esta_viva()]
+            self.creatures.extend(filhos)
                  
 
 

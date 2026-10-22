@@ -47,3 +47,14 @@ class Creature():
 
     def esta_viva(self):
         return self.energy>0
+
+    def pode_reproduzir(self):
+        return self.energy>config.REPRODUCAO_LIMIAR
+
+    def gera_filho(self):
+        novo_genoma = self.genoma.copia_mutada()
+        energia_dada = self.energy * config.REPRODUCAO_PERCENTAGEM
+        filho = Creature(self.pos, novo_genoma, energia_dada)
+        self.energy= self.energy - energia_dada - config.REPRODUCAO_CUSTO
+        return filho
+        
