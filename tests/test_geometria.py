@@ -4,7 +4,7 @@ Correr a partir da pasta do projeto:  python -m pytest -v
 Se o teu ficheiro de geometria tiver outro nome, muda o import abaixo.
 """
 import pytest
-from src.geometria import wrap, delta
+from geometria import wrap, delta
 
 MUNDO = (1000, 700)
 
