@@ -33,6 +33,8 @@ def update(world:w.World):
 
 
 def draw(clock, world: w.World, state:sb.State, surface, fonte):
+    ids_f:list[int]=[]
+
     surface.fill(config.COR_DE_FUNDO)
 
     text_fps = fonte.render(f"Fps: {round(clock.get_fps())}", True, config.COR_DE_TEXT)
@@ -59,6 +61,9 @@ def draw(clock, world: w.World, state:sb.State, surface, fonte):
 
 
     for c in world.creatures:
+         if c.genoma.id_fundador not in ids_f:
+            ids_f.append(c.genoma.id_fundador)
+
         
          text_vida = fonte.render(f"{round(c.energy)} : {c.genoma.geracao}", True, config.COR_DE_TEXT)
          surface.blit(text_vida, (c.pos[0]-10,c.pos[1]-25))
@@ -79,8 +84,10 @@ def draw(clock, world: w.World, state:sb.State, surface, fonte):
                 c.pos, 
                 fim, 
                 config.CREATURE_DIRECTION_LARGURA)
-
          
+    texto = "Fundadores: " + " | ".join(str(i) for i in sorted(ids_f))
+    text_fundadores = fonte.render(texto, True, config.COR_DE_TEXT)
+    surface.blit(text_fundadores, (0, 40))     
     pygame.display.flip()
 
 

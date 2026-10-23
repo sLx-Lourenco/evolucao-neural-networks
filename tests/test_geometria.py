@@ -81,3 +81,60 @@ def test_delta_antissimetrico():
     dx1, dy1 = delta(a, b, MUNDO)
     dx2, dy2 = delta(b, a, MUNDO)
     assert (dx1, dy1) == aprox((-dx2, -dy2))
+
+
+# ---------------------------------------------------------------- angulo_relativo (fase 5)
+
+import math
+from geometria import angulo_relativo, pitagoras
+
+
+@pytest.mark.parametrize("angulo_criatura, vetor, esperado", [
+    (0.0, (10, 0), 0.0),                       # mesmo à frente
+    (0.0, (0, 10), math.pi / 2),               # abaixo = à direita (y cresce para baixo)
+    (0.0, (0, -10), -math.pi / 2),             # acima = à esquerda
+    (math.pi / 2, (10, 0), -math.pi / 2),      # a olhar para baixo, a comida à direita do ecrã fica à esquerda
+    (math.pi / 2, (0, 10), 0.0),               # a olhar para baixo, comida em baixo: à frente
+    (math.pi, (-10, 0), 0.0),                  # a olhar para a esquerda, comida à esquerda
+    (3 * math.pi / 2, (0, -10), 0.0),          # a olhar para cima, comida em cima
+    (0.0, (10, 10), math.pi / 4),              # na diagonal
+    (6.0, (10, 0), 2 * math.pi - 6.0),         # ângulo da criatura perto de uma volta
+    (0.1, (math.cos(6.2), math.sin(6.2)), 6.2 - 0.1 - 2 * math.pi),  # caminho curto pelo outro lado
+])
+def test_angulo_relativo(angulo_criatura, vetor, esperado):
+    assert angulo_relativo(angulo_criatura, vetor) == pytest.approx(esperado, abs=1e-9)
+
+
+def test_angulo_relativo_comida_atras():
+    v = angulo_relativo(0.0, (-10, 0))
+    assert abs(v) == pytest.approx(math.pi)
+
+
+def test_angulo_relativo_sempre_entre_menos_pi_e_pi():
+    for i in range(200):
+        a = i * 0.137 - 10
+        for vx, vy in [(1, 0), (0, 1), (-1, 0), (0, -1), (3, -7), (-2, -5)]:
+            v = angulo_relativo(a, (vx, vy))
+            assert -math.pi <= v < math.pi + 1e-12
+
+
+def test_angulo_relativo_nao_depende_da_distancia():
+    assert angulo_relativo(1.0, (3, 4)) == pytest.approx(angulo_relativo(1.0, (300, 400)))
+
+
+def test_angulo_relativo_invariante_a_voltas_completas():
+    assert angulo_relativo(0.5, (2, 7)) == pytest.approx(angulo_relativo(0.5 + 2 * math.pi, (2, 7)))
+    assert angulo_relativo(0.5, (2, 7)) == pytest.approx(angulo_relativo(0.5 - 4 * math.pi, (2, 7)))
+
+
+def test_virar_pelo_angulo_relativo_aponta_para_a_comida():
+    """Somar o ângulo relativo ao ângulo da criatura deixa-a virada para a comida."""
+    for a in (0.0, 1.0, 2.5, 4.0, 6.0):
+        for vetor in [(5, 1), (-3, 4), (-2, -2), (0.5, -6)]:
+            novo = a + angulo_relativo(a, vetor)
+            assert angulo_relativo(novo, vetor) == pytest.approx(0.0, abs=1e-9)
+
+
+@pytest.mark.parametrize("v, esperado", [((3, 4), 5.0), ((0, 0), 0.0), ((-6, 8), 10.0), ((1.5, 2.0), 2.5)])
+def test_pitagoras(v, esperado):
+    assert pitagoras(v) == pytest.approx(esperado)

@@ -1,15 +1,17 @@
-"""Testes do genoma (fase 4): genes, cópia mutada, limites e hereditariedade.
+"""Testes do genoma (fases 4 e 5): genes, cérebro, fundadora, cópia mutada, limites e hereditariedade.
 
 Correr a partir da pasta do projeto:  python -m pytest -v
 """
 import random
 import statistics
 
+import numpy as np
 import pytest
 
 import config
+from brain import Brain
 from genome import Genoma
-from conftest import faz_genoma
+from conftest import faz_genoma, cerebro_zero
 
 TAXA = config.REPRODUCAO_DESVIO_PADRAO
 
@@ -17,11 +19,14 @@ TAXA = config.REPRODUCAO_DESVIO_PADRAO
 # ================================================================ construtor
 
 def test_construtor_guarda_os_genes():
-    g = Genoma(7.5, 2.25, (10, 200, 30), 4)
+    cerebro = cerebro_zero()
+    g = Genoma(7.5, 2.25, (10, 200, 30), 4, cerebro, 17)
     assert g.size == 7.5
     assert g.velocity == 2.25
     assert g.cor == (10, 200, 30)
     assert g.geracao == 4
+    assert g.brain is cerebro
+    assert g.id_fundador == 17
 
 
 # ================================================================ cópia mutada: básico
@@ -209,12 +214,14 @@ def test_limites_do_config_fazem_sentido():
 # ================================================================ sem mutação
 
 def test_sem_mutacao_os_filhos_sao_copias(sem_mutacao):
-    g = faz_genoma(8.3, 2.7, (10, 20, 30), 5)
+    g = faz_genoma(8.3, 2.7, (10, 20, 30), 5, cerebro=Brain.create_random(), fundador=9)
     filho = g.copia_mutada()
     assert filho.size == pytest.approx(8.3)
     assert filho.velocity == pytest.approx(2.7)
     assert filho.cor == (10, 20, 30)
     assert filho.geracao == 6
+    assert filho.id_fundador == 9
+    assert np.array_equal(filho.brain.w1, g.brain.w1)
 
 
 # ================================================================ hereditariedade
@@ -241,3 +248,65 @@ def test_linhagens_afastam_se_com_o_tempo():
             g = g.copia_mutada()
         distancias.append(abs(g.size - 8.0))
     assert statistics.mean(distancias) > TAXA * config.CREATURE_BASE_RADIUS * 3
+
+
+# ================================================================ cérebro no genoma (fase 5)
+
+def test_filho_tem_cerebro_novo():
+    g = faz_genoma(cerebro=Brain.create_random())
+    filho = g.copia_mutada()
+    assert isinstance(filho.brain, Brain)
+    assert filho.brain is not g.brain
+
+
+def test_cerebro_do_filho_e_mutado():
+    g = faz_genoma(cerebro=Brain.create_random())
+    filho = g.copia_mutada()
+    assert not np.array_equal(filho.brain.w1, g.brain.w1)
+
+
+def test_cerebro_do_filho_parecido_com_o_do_pai():
+    g = faz_genoma(cerebro=Brain.create_random())
+    filho = g.copia_mutada()
+    assert np.abs(filho.brain.w1 - g.brain.w1).max() < 6 * config.NEURO_DESVIO_MUTACAO
+
+
+def test_cerebro_do_pai_fica_igual():
+    g = faz_genoma(cerebro=Brain.create_random())
+    antes = g.brain.w1.copy()
+    for _ in range(20):
+        g.copia_mutada()
+    assert np.array_equal(g.brain.w1, antes)
+
+
+def test_cor_nao_e_estragada_pela_variavel_do_cerebro():
+    """O canal azul e o cérebro não se misturam (os dois chegam a usar o nome b)."""
+    g = faz_genoma(cor=(10, 20, 250), cerebro=Brain.create_random())
+    filho = g.copia_mutada()
+    assert isinstance(filho.cor, tuple) and len(filho.cor) == 3
+    assert isinstance(filho.brain, Brain)
+    assert filho.cor[2] > 150
+
+
+def test_mutacao_do_corpo_e_do_cerebro_sao_independentes(monkeypatch):
+    """Desligar a mutação do corpo não desliga a do cérebro, e vice-versa."""
+    monkeypatch.setattr(config, "REPRODUCAO_DESVIO_PADRAO", 0.0)
+    g = faz_genoma(cerebro=Brain.create_random())
+    f = g.copia_mutada()
+    assert f.size == pytest.approx(g.size)
+    assert not np.array_equal(f.brain.w1, g.brain.w1)
+
+    monkeypatch.setattr(config, "REPRODUCAO_DESVIO_PADRAO", 0.05)
+    monkeypatch.setattr(config, "NEURO_DESVIO_MUTACAO", 0.0)
+    f = g.copia_mutada()
+    assert np.array_equal(f.brain.w1, g.brain.w1)
+
+
+# ================================================================ fundadora
+
+@pytest.mark.parametrize("fundador", [0, 7, 49])
+def test_fundadora_passa_igual_aos_filhos(fundador):
+    g = faz_genoma(fundador=fundador)
+    for _ in range(100):
+        g = g.copia_mutada()
+        assert g.id_fundador == fundador

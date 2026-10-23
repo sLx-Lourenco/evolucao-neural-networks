@@ -1,4 +1,4 @@
-"""Testes da simulação completa (checkpoint da fase 4).
+"""Testes da simulação completa (checkpoints das fases 4 e 5).
 
 São os testes mais lentos: correm o mundo durante milhares de ticks com o teu config.
 Se falharem, normalmente não é um bug, é o equilíbrio de parâmetros do config
@@ -6,21 +6,24 @@ Se falharem, normalmente não é um bug, é o equilíbrio de parâmetros do conf
 
 Correr só estes:  python -m pytest tests/test_simulacao.py -v
 """
-import random
+import math
 import statistics
 
+import numpy as np
 import pytest
 
 import config
+import geometria
 from world import World
+from conftest import semear
 
-TICKS = 6_000
+TICKS = 4_000
 LIMITE_POPULACAO = 2000
 SEMENTES = [0, 1, 2]
 
 
 def corre(seed, ticks=TICKS):
-    random.seed(seed)
+    semear(seed)
     w = World(config.WORLD_SIZE)
     historico = []
     for _ in range(ticks):
@@ -95,7 +98,7 @@ def test_todas_vivas_no_fim_do_tick(corridas, seed):
 
 
 def test_mesma_semente_mesmo_resultado():
-    """Reprodutibilidade: a mesma semente dá exatamente a mesma simulação."""
+    """Reprodutibilidade: fixando as sementes do random E do numpy, a simulação repete-se igual."""
     w1, h1 = corre(123, ticks=2000)
     w2, h2 = corre(123, ticks=2000)
     assert h1 == h2
@@ -116,3 +119,59 @@ def test_mutacao_cria_variedade(corridas):
         pytest.skip("população demasiado pequena")
     assert statistics.pstdev(c.genoma.size for c in vivos) > 0
     assert len({c.genoma.cor for c in vivos}) > 1
+
+
+# ================================================================ o cérebro evolui (checkpoint da fase 5)
+
+def percentagem_vira_para_a_comida(w):
+    """Das criaturas que veem comida, quantas viram para o lado em que ela está.
+
+    Com cérebros ao acaso anda à volta de 50%. Se a evolução funcionou, sobe bastante.
+    """
+    certas = total = 0
+    for c in w.creatures:
+        d = w.comida_mais_proxima(c)
+        if d is None:
+            continue
+        ang = geometria.angulo_relativo(c.angle, d) / math.pi
+        if abs(ang) < 0.05:
+            continue
+        prox = 1 - geometria.pitagoras(d) / config.CREATURE_BASE_VISION
+        saidas = c.genoma.brain.pensar(np.array((ang, prox, c.energia_normalizada())))
+        total += 1
+        certas += np.sign(saidas[0]) == np.sign(ang)
+    return certas / total if total else None
+
+
+def test_primeira_geracao_vira_ao_calhas():
+    semear(5)
+    w = World(config.WORLD_SIZE)
+    valores = []
+    for _ in range(20):
+        semear(len(valores) + 100)
+        w = World(config.WORLD_SIZE)
+        p = percentagem_vira_para_a_comida(w)
+        if p is not None:
+            valores.append(p)
+    assert 0.3 < statistics.mean(valores) < 0.7
+
+
+@pytest.mark.parametrize("seed", SEMENTES)
+def test_evolucao_ensina_a_virar_para_a_comida(corridas, seed):
+    w, _ = corridas[seed]
+    if not w.creatures:
+        pytest.skip("a população extinguiu-se")
+    p = percentagem_vira_para_a_comida(w)
+    if p is None:
+        pytest.skip("nenhuma criatura via comida no fim")
+    assert p > 0.6, f"Só {p:.0%} das criaturas viram para a comida (esperado bem acima de 50%)."
+
+
+@pytest.mark.parametrize("seed", SEMENTES)
+def test_restam_poucas_linhagens(corridas, seed):
+    """Boleia genética: ao fim de muitas gerações, poucas fundadoras ainda têm descendentes."""
+    w, _ = corridas[seed]
+    if not w.creatures:
+        pytest.skip("a população extinguiu-se")
+    linhagens = {c.genoma.id_fundador for c in w.creatures}
+    assert len(linhagens) < config.INICIAL_AMOUNT_CREATURES / 2

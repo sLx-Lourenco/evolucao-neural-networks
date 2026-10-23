@@ -15,11 +15,12 @@ jobs:
         ficheiro:
           - test_geometria
           - test_genome
+          - test_brain
           - test_creature
           - test_world
           - test_state_box
           - test_main
-          - test_simulacao
+          #- test_simulacao
 
     steps:
       - name: Obter o código

@@ -1,12 +1,17 @@
 import random
 import config
+import brain
+import math
 
 class Genoma:
-    def __init__(self, size:float, velocity: float, cor: tuple[int,int,int], geracao:int):
+    def __init__(self, size:float, velocity: float, cor: tuple[int,int,int], geracao:int, 
+                 brain:brain.Brain, id_fundador:int):
             self.size = size
             self.velocity = velocity
             self.cor=cor
             self.geracao=geracao
+            self.brain = brain
+            self.id_fundador = id_fundador
 
 
     def copia_mutada(self):
@@ -28,4 +33,7 @@ class Genoma:
           c = (r,g,b)
           ger = self.geracao+1
 
-          return Genoma(s,v,c,ger)
+          b = self.brain.copia_mutada()
+
+          return Genoma(s,v,c,ger, b, self.id_fundador)
+

@@ -4,6 +4,9 @@ import config
 import creature
 import geometria
 import genome as gen
+import brain
+import math
+import numpy as np
 
 class World:
     def __init__(self, size: tuple[float, float]):
@@ -15,6 +18,7 @@ class World:
         self.gerar_comida(config.INICIAL_AMOUNT_FOOD)
         self.gerar_criatura(config.INICIAL_AMOUNT_CREATURES)
 
+    id_f=0
 
     def advance_tick(self):
             self.n_ticks += 1
@@ -26,7 +30,22 @@ class World:
 
 
             for c in self.creatures:
-                 c.virar_acaso()
+                 f_perto = self.comida_mais_proxima(c)
+
+                 if f_perto is not None:
+                     b_ang_r= geometria.angulo_relativo(c.angle,f_perto)/math.pi
+                     b_proximidade = 1 - (geometria.pitagoras(f_perto)/config.CREATURE_BASE_VISION)
+                 else:
+                     b_ang_r=0
+                     b_proximidade=0
+
+                 b_energia = c.energia_normalizada()
+
+
+                 vet_entrada = np.array((b_ang_r,b_proximidade, b_energia))
+                 saidas= c.genoma.brain.pensar(vet_entrada)
+
+                 c.agir(saidas)
                  c.andar(self.size)
                  c.gastar_energia()
 
@@ -54,6 +73,7 @@ class World:
 
     def gerar_criatura(self, num_criaturas:int = 1):
          for _ in range(num_criaturas):
+            
 
             c_size = random.uniform(config.CREATURE_BASE_RADIUS * (1- config.CREATURE_VARIATION),
                                     config.CREATURE_BASE_RADIUS * (1+ config.CREATURE_VARIATION))
@@ -69,7 +89,9 @@ class World:
 
             c_cor = (cor[0],cor[1],cor[2])
 
-            genoma = gen.Genoma(c_size, c_velocity, c_cor, 1)
+            c_brain = brain.Brain.create_random()
+
+            genoma = gen.Genoma(c_size, c_velocity, c_cor, 1, c_brain, self.id_f)
 
 
             c = creature.Creature(
@@ -77,6 +99,8 @@ class World:
                  genoma
                 )
             self.creatures.append(c)
+
+            self.id_f+=1
 
 
     def verificar_alimentacao(self, c: creature.Creature):
@@ -92,4 +116,17 @@ class World:
                 break
 
              
-         
+    def comida_mais_proxima(self, c: creature.Creature):
+        d_perto: tuple | None = None
+        
+        mais_perto:float = config.CREATURE_BASE_VISION**2
+        for f in self.foods:
+            d = geometria.delta(c.pos,f.pos, self.size)
+            d_pit= d[0]**2 + d[1]**2 
+            if d_pit < mais_perto:
+                mais_perto = d_pit
+                d_perto = d
+
+        return d_perto
+                
+
